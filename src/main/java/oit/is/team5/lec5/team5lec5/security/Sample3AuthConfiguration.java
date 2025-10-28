@@ -14,6 +14,32 @@ import org.springframework.security.web.SecurityFilterChain;
 public class Sample3AuthConfiguration {
 
   /**
+   * 認可処理に関する設定（認証されたユーザがどこにアクセスできるか）
+   *
+   * @param http
+   * @return
+   * @throws Exception
+   */
+  @Bean
+  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    http.formLogin(login -> login
+        .permitAll())
+        .logout(logout -> logout
+            .logoutUrl("/logout")
+            .logoutSuccessUrl("/")) // ログアウト後に / にリダイレクト
+        .authorizeHttpRequests(authz -> authz
+            .requestMatchers("/sample5/**").authenticated() // /sample5/以下は認証済みであること
+
+            .anyRequest().permitAll()) // 上記以外は全員アクセス可能
+        .csrf(csrf -> csrf
+            .ignoringRequestMatchers("/h2-console/*", "/sample2*/**")) // sample2用にCSRF対策を無効化
+        .headers(headers -> headers
+            .frameOptions(frameOptions -> frameOptions
+                .sameOrigin()));
+    return http.build();
+  }
+
+  /**
    * 認証処理に関する設定（誰がどのようなロールでログインできるか）
    *
    * @return
